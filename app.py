@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, make_response, render_template
 from flask import Response
 import json
 import requests
+from os import environ
 
 
 
@@ -171,6 +172,12 @@ def apiLinkInfo():
 
 #INIZIO TELEGRAM
 
+TOKEN = environ.get('BOT_TOKEN')
+
+def inviaMessaggio(chat_id, text):
+    url = f'https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={chat_id}&text={text}'
+    requests.post(url)
+    return 0 
 
 def index():
     if request.method == 'POST':
@@ -181,7 +188,19 @@ def index():
         text = f''
         
 
-        
+        if messageText == '/start':
+            text = (f'Ciao, {username}!\n'
+                    f'Usa il comando /help per avere le informazioni sul mio funzionamento mentre usa /cmd per visualizzare i comandi disponibili.\n')
+                
+
+        elif messageText == '/help':
+            text = (f'Questo Bot permette di creare dei ShortURL attraverso il sito https://rebrandly.com.\n'
+                    f'Per potermi usare come prima cosa devi collegare la tua API KEY fornita dal sito attraverso il comando /collegakey (se non lo hai giÃ  fatto dovrai prima creare un account.\n'
+                    f'Usa il comando /cmd per visualizzare i comandi disponibili e il loro funzionamento.')
+
+
+
+        inviaMessaggio(chat_id, text)
 
     return jsonify(req)
  
