@@ -4,6 +4,10 @@ import json
 import requests
 
 
+
+
+#INIZIO API
+
 def apiAccountInfo():
 
     api_key = request.args.get('api_key', None)
@@ -162,7 +166,26 @@ def apiLinkInfo():
 
     return make_response(jsonify(r), 200)
 
+#FINE API
 
+
+#INIZIO TELEGRAM
+
+
+def index():
+    if request.method == 'POST':
+        req = request.get_json()
+        chat_id  = req.get('message').get('chat').get('id')
+        username = req.get('message').get('chat').get('first_name')
+        messageText  = req.get('message').get('text')
+        text = f''
+        
+
+        
+
+    return jsonify(req)
+ 
+#FINE TELEGRAM 
 
 
 
