@@ -122,3 +122,50 @@ def apiCountLink():
     }
 
     return make_response(jsonify(r), 200)
+
+
+
+def apiLinkInfo():
+
+    idLink = request.args.get('idLink', None)
+
+    api_key = request.args.get('api_key', None)
+
+    url = f'https://api.rebrandly.com/v1/links/{idLink}?apikey={api_key}'
+
+
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        return make_response(f'ID link non trovato', 404)
+
+    response = response.json()
+
+    rId       = response.get('id')
+    rTitle    = response.get('title')
+    rDest     = response.get('destination')
+    rShortUrl = response.get('shortUrl')
+    rStatus   = response.get('status')
+    rClicks   = response.get('clicks')
+    rCreate   = response.get('createdAt')
+
+
+    r = {
+        "id": rId,
+        "title": rTitle,
+        "destination": rDest,
+        "shortUrl": rShortUrl,
+        "status": rStatus,
+        "clicks": rClicks,
+        "createdAt": rCreate
+    }
+
+    return make_response(jsonify(r), 200)
+
+
+
+
+
+
+
+    
