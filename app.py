@@ -166,23 +166,11 @@ def apiLinkInfo():
 
     return make_response(jsonify(r), 200)
 
-
-
 #FINE API
-
-
 
 
 #INIZIO TELEGRAM
 
-
-def inviaMessaggio(chat_id, text):
-    url = f'https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={chat_id}&text={text}'
-
-    #url = telegramUrl + ("/sendMessage?chat_id=%s&text=%s",(chat_id,text))
-    #r = requests.post(url)
-    requests.post(url)
-    return 0 #r.json()
 
 def index():
     if request.method == 'POST':
@@ -193,20 +181,7 @@ def index():
         text = f''
         
 
-        if messageText == '/start':
-                text = (f'Ciao, {username}!\n'
-                        f'Usa il comando /help per avere le informazioni sul mio funzionamento mentre usa /cmd per visualizzare i comandi disponibili.\n')
-                
-                
-                #inviaMessaggio(chat_id, text)
-
-            elif messageText == '/help':
-                text = (f'Questo Bot permette di creare dei ShortURL attraverso il sito https://rebrandly.com.\n'
-                        f'Per potermi usare come prima cosa devi collegare la tua API KEY fornita dal sito attraverso il comando /collegakey (se non lo hai giÃ  fatto dovrai prima creare un account.\n'
-                        f'Usa il comando /cmd per visualizzare i comandi disponibili e il loro funzionamento.')
-                ##inviaMessaggio(chat_id, text)
-
-        inviaMessaggio(chat_id, text)
+        
 
     return jsonify(req)
  
