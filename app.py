@@ -3,9 +3,29 @@ from flask import Response
 import json
 import requests
 from os import environ
+import psycopg2
+
+
+#INIZIO DATABASE
+
+try:
+    dbConn = psycopg2.connect(
+        host     = environ.get('DATABASE_HOST'),
+        database = environ.get('DATABASE_DB'),
+        user     = environ.get('DATABASE_USER'),
+        password = environ.get('DATABASE_PWD'),
+        port     = environ.get('DATABASE_PORT')
+    )
+
+    print("Connessione al DataBase riuscita")
+except:
+    Response.status(503)
+    print("Errore nella connessione con il DataBase")
 
 
 
+
+#FINE DATABASE
 
 #INIZIO API
 
