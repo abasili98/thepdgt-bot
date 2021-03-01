@@ -167,6 +167,38 @@ def apiLinkInfo():
 
     return make_response(jsonify(r), 200)
 
+
+def apiListLink():
+
+    api_key = request.args.get('api_key', None)
+
+
+    url = f'https://api.rebrandly.com/v1/links'
+
+    querystring = {"orderBy":"createdAt","orderDir":"desc","limit":"25"}
+
+    headers = {"apikey": api_key}
+
+    response = requests.request("GET", url, headers=headers, params=querystring)
+
+    if response.status_code != 200:
+        return make_response(response, 400)
+
+    response = response.json()
+
+    rList = []
+
+    for item in response:
+        temp = {"id":None, "title":None, "destination":None, "shortUrl":None }
+        temp['id']          = item['id']
+        temp['title']       = item['title']
+        temp['destination'] = item['destination']
+        temp['shortUrl']    = item['shortUrl']
+        rList.append(temp)
+
+    return make_response(jsonify(rList), 200)
+
+
 #FINE API
 
 
