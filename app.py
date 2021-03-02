@@ -44,6 +44,25 @@ def insertChatId(chat_id):
 
     return 0 
 
+def getApiKeyFromChatId(chat_id):
+    try:
+        cur = dbConn.cursor()
+        cur.execute(f"SELECT api_key FROM users WHERE chat_id = \'{chat_id}\'")
+                
+        row = cur.fetchone()
+   
+    except psycopg2.Error as e:
+        error = e.pgcode
+        print("ERRORE in getApiKeyfromChatId!: %s", error)
+    finally:
+        cur.close()
+
+    if row: 
+        return str(row[0])
+    else:
+        return -1
+        
+
 #Cambaire l'API KEY assocciata al Chat Id
 def setApiKey(chat_id, api_key):
     try:
@@ -376,16 +395,15 @@ def index():
 
 
         elif messageText == '/infolink':
-                    #FUNZIONA
                     text = f'Okei, ora imviami l\'ID del Link di cui vuoi visualizzare le informazioni\n'            
-                    #inviaMessaggio(chat_id, text) 
                     setStatus(chat_id, f'2')
 
-                elif messageText == '/newlink':
-                    #FUNZIONA
+        elif messageText == '/newlink':
                     text = f'Okei, ora imviami il link che vuoi ridurre\n'
-                    #inviaMessaggio(chat_id, text) 
                     setStatus(chat_id, f'3')
+
+
+        
 
 
         elif status == '1':
