@@ -316,6 +316,7 @@ def index():
         messageText  = req.get('message').get('text')
         text = f''
         
+        status = getStatus(chat_id)
 
         if messageText == '/start':
             text = (f'Ciao, {username}!\n'
@@ -328,7 +329,15 @@ def index():
                     f'Usa il comando /cmd per visualizzare i comandi disponibili e il loro funzionamento.')
 
 
-        
+        elif messageText == '/collegakey':
+                text = f'Okei, ora inviami la Key che vuoi associare al bot\n'
+                setStatus(chat_id, f'1')  
+
+        elif status == '1':
+                    if setApiKey(chat_id, messageText) == 0 and setStatus(chat_id, f'0'):
+                        text = f'Key settata correttamente'
+                    else:
+                        text = f'Errore: key non settata. Riprova\n'
 
 
 
