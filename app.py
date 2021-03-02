@@ -23,6 +23,36 @@ except:
     print("Errore nella connessione con il DataBase")
 
 
+def insertChatId(chat_id):
+    try:
+        cur = dbConn.cursor()
+        cur.execute(f"INSERT INTO users (chat_id) VALUES ({chat_id})")
+        dbConn.commit()
+        print("Chat Id inserita correttamente")
+        
+    except psycopg2.Error as e:
+        error = e.pgcode
+        print("ERRORE in insertChatId!: %s", error) 
+    finally:
+        cur.close()  
+
+    return 0 
+
+#Cambaire l'API KEY assocciata al Chat Id
+def setApiKey(chat_id, api_key):
+    try:
+        cur = dbConn.cursor()
+        cur.execute(f"UPDATE users SET api_key = \'{api_key}\' WHERE chat_id = \'{chat_id}\'")                
+        dbConn.commit()
+        print("API KEY settata correttamente")
+               
+    except psycopg2.Error as e:
+        error = e.pgcode
+        print("ERRORE in setApiKey!: %s", error)  
+    finally:
+        cur.close()
+
+    return 0
 
 
 #FINE DATABASE
@@ -249,6 +279,9 @@ def index():
             text = (f'Questo Bot permette di creare dei ShortURL attraverso il sito https://rebrandly.com.\n'
                     f'Per potermi usare come prima cosa devi collegare la tua API KEY fornita dal sito attraverso il comando /collegakey (se non lo hai giÃ  fatto dovrai prima creare un account.\n'
                     f'Usa il comando /cmd per visualizzare i comandi disponibili e il loro funzionamento.')
+
+
+
 
 
 
