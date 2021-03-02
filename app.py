@@ -60,6 +60,42 @@ def setApiKey(chat_id, api_key):
 
     return 0
 
+#Dal Chat Id ottiene lo stato attuale della chat
+def getStatus(chat_id):
+    try:
+        cur = dbConn.cursor()
+        cur.execute(f"SELECT status FROM users WHERE chat_id = \'{chat_id}\'")
+                
+        row = cur.fetchone()      
+        
+    except psycopg2.Error as e:
+        error = e.pgcode
+        print("ERRORE in getStatus!: %s", error)
+    finally:
+        cur.close()
+
+    if row: 
+        return str(row[0])
+    else:
+        return -1
+
+
+#Cambia lo stato
+def setStatus(chat_id, s):
+    try:
+        cur = dbConn.cursor()
+        cur.execute(f"UPDATE users SET status = \'{s}\' WHERE chat_id = \'{chat_id}\'")         
+        dbConn.commit()
+        print("Stauts aggiornato correttamente")
+        
+    except psycopg2.Error as e:
+        error = e.pgcode
+        print("ERRORE in setStatus!: %s", error) 
+    finally:
+        cur.close()  
+    
+    return 0
+
 
 #FINE DATABASE
 
