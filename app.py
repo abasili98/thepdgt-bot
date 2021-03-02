@@ -375,11 +375,81 @@ def index():
                 setStatus(chat_id, f'1')  
 
 
+        elif messageText == '/infolink':
+                    #FUNZIONA
+                    text = f'Okei, ora imviami l\'ID del Link di cui vuoi visualizzare le informazioni\n'            
+                    #inviaMessaggio(chat_id, text) 
+                    setStatus(chat_id, f'2')
+
+                elif messageText == '/newlink':
+                    #FUNZIONA
+                    text = f'Okei, ora imviami il link che vuoi ridurre\n'
+                    #inviaMessaggio(chat_id, text) 
+                    setStatus(chat_id, f'3')
+
+
         elif status == '1':
                     if setApiKey(chat_id, messageText) == 0 and setStatus(chat_id, f'0'):
                         text = f'Key settata correttamente'
                     else:
                         text = f'Errore: key non settata. Riprova\n'
+
+        elif status == '2':
+                    api_key = getApiKeyFromChatId(chat_id)
+
+                    if api_key != -1:
+                        
+                        url = f'https://thepdgt-bot.herokuapp.com/linkinfo?idLink={messageText}&api_key={api_key}'
+                    
+                        response = requests.get(url)
+
+                        if response.status_code != 200:
+                            text = f'Errore nel trovare la chiave'
+                        else:
+                        
+                            response = response.json()
+
+                            rId         = response.get('id')
+                            rTitle      = response.get('title')
+                            rDest       = response.get('destination')
+                            rShortUrl   = response.get('shortUrl')
+                            rStatus     = response.get('status')
+                            rClicks     = response.get('clicks')
+                            rCreated    = response.get('createdAt')
+                            
+                            rCreatedD   = rCreated.split("T")[0]
+
+
+                            text = f'ID Link : {rId}\nTitolo: {rTitle}\nDestinazione: {rDest}\nLink ridotto: {rShortUrl}\nStato link: {rStatus}\nClicks sul link: {rClicks}\nData creazione: {rCreatedD}\n' 
+
+                            setStatus(chat_id, f'0')
+                    else:
+                        text = f'Errore nel trovare la chiave'
+
+                    
+
+            elif status == '3':
+
+                    api_key = getApiKeyFromChatId(chat_id)
+
+                    if api_key != -1:
+
+                        url = f'https://thepdgt-bot.herokuapp.com/newlink?api_key={api_key}&destUrl={messageText}'
+                    
+                        response = requests.get(url)
+
+                        if response.status_code != 200:
+                            text = f'Errore nel creare il link.\nCopiare tutto il link (comrpreso http[s]://)\n'
+                        else:
+                            response = response.json()
+                            newUrl = response.get('shortUrl')
+                            print(newUrl)
+
+                            text = f'Link ridotto creato: {str(newUrl)}'
+
+                            setStatus(chat_id, f'0')
+                    else:
+                        text = f'Errore nel trovare la chiave'
 
 
 
