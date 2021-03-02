@@ -296,6 +296,47 @@ def apiListLink():
     return make_response(jsonify(rList), 200)
 
 
+@app.route('/deletealllinks')
+def apiDelAllLinks():
+    api_key = request.args.get('api_key', None)
+
+    url = f'https://thepdgt-bot.herokuapp.com/listlink?api_key={api_key}'
+
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        return make_response(f'Errore nel caricare la lista', 400)
+    
+    response = response.json()
+
+    error = False
+
+
+    for item in response:
+        rId = item['id']
+        print(rId)
+        print(item['id'])
+        url = f'https://api.rebrandly.com/v1/links/{rId}?apikey={api_key}'
+        response1 = requests.delete(url)
+        if response1.status_code != 200:
+            error = True
+
+
+    
+    if error:
+        r = {
+            'status': f'Errore con alcuni link'
+        }
+        return make_response(jsonify(r),401)
+    else:
+        r = {
+            'status': f'OK'
+        }
+        return make_response(jsonify(r), 200)
+
+
+
+
 #FINE API
 
 
@@ -332,6 +373,7 @@ def index():
         elif messageText == '/collegakey':
                 text = f'Okei, ora inviami la Key che vuoi associare al bot\n'
                 setStatus(chat_id, f'1')  
+
 
         elif status == '1':
                     if setApiKey(chat_id, messageText) == 0 and setStatus(chat_id, f'0'):
