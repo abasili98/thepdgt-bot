@@ -6,6 +6,12 @@ from os import environ
 import psycopg2
 
 
+
+
+app = Flask(__name__)
+
+
+
 #INIZIO DATABASE
 
 try:
@@ -59,6 +65,8 @@ def setApiKey(chat_id, api_key):
 
 #INIZIO API
 
+
+@app.route('/accountinfo')
 def apiAccountInfo():
 
     api_key = request.args.get('api_key', None)
@@ -98,6 +106,7 @@ def apiAccountInfo():
     return make_response(jsonify(r), 200)
 
 
+@app.route('/newlink')
 def apiNewLink():
 
     api_key = request.args.get('api_key', None)
@@ -121,6 +130,7 @@ def apiNewLink():
     return make_response(jsonify(r), 200)
 
 
+@app.route('/dellink')
 def apiDelLink():
 
     api_key = request.args.get('api_key', None)
@@ -154,7 +164,7 @@ def apiDelLink():
     return make_response(jsonify(r), 200)
 
 
-
+@app.route('/countlink')
 def apiCountLink():
 
     api = request.args.get('api_key', None)
@@ -179,7 +189,7 @@ def apiCountLink():
     return make_response(jsonify(r), 200)
 
 
-
+@app.route('/linkinfo')
 def apiLinkInfo():
 
     idLink = request.args.get('idLink', None)
@@ -218,6 +228,7 @@ def apiLinkInfo():
     return make_response(jsonify(r), 200)
 
 
+@app.route('/listlink')
 def apiListLink():
 
     api_key = request.args.get('api_key', None)
@@ -281,6 +292,7 @@ def index():
                     f'Usa il comando /cmd per visualizzare i comandi disponibili e il loro funzionamento.')
 
 
+        
 
 
 
