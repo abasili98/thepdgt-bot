@@ -434,6 +434,11 @@ def index():
                         text = f'Account non trovato'
         
 
+        elif messageText == '/deletelink':
+                    text = f'Okei, ora inviami l\'ID del link che vuoi eliminare\n'
+                    setStatus(chat_id, f'4')
+
+
 
         elif status == '1':
                     if setApiKey(chat_id, messageText) == 0 and setStatus(chat_id, f'0'):
@@ -498,6 +503,33 @@ def index():
                     else:
                         text = f'Errore nel trovare la chiave'
 
+        elif status == '4':
+                    api_key = getApiKeyFromChatId(chat_id)
+
+                    if api_key != -1:
+
+                        url = f'https://thepdgt-bot.herokuapp.com/dellink?api_key={api_key}&idLink={messageText}'
+                    
+                        response = requests.get(url)
+
+                        if response.status_code != 200:
+                            text = f'Errore nell\'eliminare il link\n'
+
+                        else: 
+                            response = response.json()
+
+                            rId         = response.get('id')
+                            rTitle      = response.get('title')
+                            rDest       = response.get('destination')
+                            rShortUrl   = response.get('shortUrl')
+
+
+
+                            text = f'Link eliminato.\nID Link : {rId}\nTitolo: {rTitle}\nDestinazione: {rDest}\nLink ridotto: {rShortUrl}\n' 
+
+                            setStatus(chat_id, f'0')
+                    else:
+                        text = f'Errore nel trovare la chiave'
 
 
         inviaMessaggio(chat_id, text)
