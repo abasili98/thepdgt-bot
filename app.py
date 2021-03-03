@@ -4,11 +4,28 @@ import json
 import requests
 from os import environ
 import psycopg2
-
+from cryptography.fernet import Fernet
 
 
 
 app = Flask(__name__)
+
+
+FERNET_KEY = environ.get('FERNET_KEY')
+f = Fernet(FERNET_KEY.encode("utf-8"))
+
+def encrypt(text):
+    bText = text.encode("utf-8")
+    cText = f.encrypt(bText)
+
+    return cText.decode("utf-8")
+
+def decrypt(text):
+    bText = text.encode("utf-8")
+    cText = f.decrypt(bText)
+
+    return cText.decode("utf-8")
+
 
 
 
@@ -59,7 +76,7 @@ def getApiKeyFromChatId(chat_id):
         cur.close()
 
     if row: 
-        return str(row[0])
+        return str(decrypt(row[0]))
     else:
         return -1
         
@@ -68,6 +85,9 @@ def getApiKeyFromChatId(chat_id):
 def setApiKey(chat_id, api_key):
     try:
         cur = dbConn.cursor()
+
+        api_key = encrypt(api_key)
+
         cur.execute(f"UPDATE users SET api_key = \'{api_key}\' WHERE chat_id = \'{chat_id}\'")                
         dbConn.commit()
         print("API KEY settata correttamente")
