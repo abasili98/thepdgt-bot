@@ -117,6 +117,46 @@ def setStatus(chat_id, s):
     return 0
 
 
+def getAuth(chat_id):
+    try:
+        cur = dbConn.cursor()
+        cur.execute(f"SELECT auth FROM users WHERE chat_id = \'{chat_id}\'")
+                
+        row = cur.fetchone()
+        
+    except psycopg2.Error as e:
+        error = e.pgcode
+        print("ERRORE in getStatus!: %s", error)
+    finally:
+        cur.close()
+
+    if row: 
+        return str(row[0])
+    else:
+        return -1
+
+#1 - sei loggato
+#0 non sei loggato
+def setAuth(chat_id, s):
+    try:
+        cur = dbConn.cursor()
+        cur.execute(f"UPDATE users SET auth = \'{s}\' WHERE chat_id = \'{chat_id}\'")         
+        dbConn.commit()
+        print("Autorizzazione settata correttamente")
+        
+    except psycopg2.Error as e:
+        error = e.pgcode
+        print("ERRORE in setAuth!: %s", error)   
+    finally:
+        cur.close()
+
+    return 0
+
+
+
+
+
+
 #FINE DATABASE
 
 #INIZIO API
@@ -369,6 +409,8 @@ def inviaMessaggio(chat_id, text):
     requests.post(url)
     return 0 
 
+
+
 def index():
     if request.method == 'POST':
         req = request.get_json()
@@ -379,33 +421,27 @@ def index():
         
         status = getStatus(chat_id)
 
-        if messageText == '/start':
-            text = (f'Ciao, {username}!\n'
-                    f'Usa il comando /help per avere le informazioni sul mio funzionamento mentre usa /cmd per visualizzare i comandi disponibili.\n')
+        if getAuth(chat_id) == f'1':
+
+
+            if messageText == '/start':
+                text = (f'Ciao, {username}!\n'
+                        f'Usa il comando /help per avere le informazioni sul mio funzionamento mentre usa /cmd per visualizzare i comandi disponibili.\n')
                 
 
-        elif messageText == '/help':
-            text = (f'Questo Bot permette di creare dei ShortURL attraverso il sito https://rebrandly.com.\n'
-                    f'Per potermi usare come prima cosa devi collegare la tua API KEY fornita dal sito attraverso il comando /collegakey (se non lo hai giÃ  fatto dovrai prima creare un account.\n'
-                    f'Usa il comando /cmd per visualizzare i comandi disponibili e il loro funzionamento.')
+            elif messageText == '/help':
+                text = (f'Questo Bot permette di creare dei ShortURL attraverso il sito https://rebrandly.com.\n'
+                        f'Per potermi usare prima devi collegare la tua API KEY fornita dal sito attraverso il comando /collegakey (per ottenerla devi prima creare un account).\n'
+                        f'Usa il comando /cmd per visualizzare i comandi disponibili e il loro funzionamento.')
 
-
-        elif messageText == '/collegakey':
+            
+            elif messageText == '/collegakey':
                 text = f'Okei, ora inviami la Key che vuoi associare al bot\n'
-                setStatus(chat_id, f'1')  
+                setStatus(chat_id, f'1')
 
+            elif (messageText == '/infoaccount' or messageText == '/annulla' or messageText == '/infolink' or messageText == '/newlink' or messageText == '/alllinks' or messageText == '/deletelink' or messageText == '/changekey' or messageText == '/countlink' or messageText == '/deletealllink' or messageText == '/logout') and getApiKeyFromChatId(chat_id) != f'0':
 
-        elif messageText == '/infolink':
-                    text = f'Okei, ora imviami l\'ID del Link di cui vuoi visualizzare le informazioni\n'            
-                    setStatus(chat_id, f'2')
-
-        elif messageText == '/newlink':
-                    text = f'Okei, ora imviami il link che vuoi ridurre\n'
-                    setStatus(chat_id, f'3')
-
-
-        elif messageText == '/infoaccount':
-
+                if messageText == '/infoaccount':
                     api_key = getApiKeyFromChatId(chat_id)
                     if api_key != -1:
                         url = f'https://thepdgt-bot.herokuapp.com/accountinfo?api_key={api_key}'
@@ -426,20 +462,32 @@ def index():
                             rLinksMaxLimit = response.get('maxLimitLinks')
                             rLinksBlocked  = response.get('rLinksBlocked')
 
-                            rId = response["id"]  
+                            rId = response["id"]
 
                             text = f'ID Account: {rId}\nUsername: {rUsername}\nEmail: {rEmail}\nNome: {rFullName}\nLink usati: {rLinksUsed}\nLink Massimi Creabili: {rLinksMaxLimit}\nLink bloccati: {rLinksBlocked}\nTipo account: {rType}' 
 
                     else:
                         text = f'Account non trovato'
-        
+      
+                elif messageText == '/annulla':
+                    text = f'Comando annullato\n' 
+                    setStatus(chat_id, f'0')
 
-        elif messageText == '/deletelink':
-                    text = f'Okei, ora inviami l\'ID del link che vuoi eliminare\n'
-                    setStatus(chat_id, f'4')
+                elif messageText == '/logout':
+                    text = f'Logout effettuato\n'
+                           
+                    setAuth(chat_id, f'0')
+                
+                
+                elif messageText == '/infolink':
+                    text = f'Okei, ora imviami l\'ID del Link di cui vuoi visualizzare le informazioni\n'            
+                    setStatus(chat_id, f'2')
 
+                elif messageText == '/newlink':
+                    text = f'Okei, ora imviami il link che vuoi ridurre\n'
+                    setStatus(chat_id, f'3')
 
-        elif messageText == '/alllinks':
+                elif messageText == '/alllinks':
                     api_key = getApiKeyFromChatId(chat_id)
 
                     if api_key != -1:
@@ -466,9 +514,26 @@ def index():
                             
                     else:
                         text = f'Account non trovato'
+                
 
-        elif messageText == '/countlink':
-                    #FUNZIONA
+                elif messageText == '/deletealllink':
+                    api_key = getApiKeyFromChatId(chat_id)
+                    
+                    url = f'https://thepdgt-bot.herokuapp.com/deletealllinks?api_key={api_key}'
+
+                    response = requests.get(url)
+
+                    if response.status_code != 200:
+                        text = f'Errore nell\'eliminare tutti i link\n' 
+                    else:
+                        text = f'Link eliminati correttamente'
+          
+
+                elif messageText == '/deletelink':
+                    text = f'Okei, ora inviami l\'ID del link che vuoi eliminare\n'
+                    setStatus(chat_id, f'4')
+
+                elif messageText == '/countlink':
                     api_key = getApiKeyFromChatId(chat_id)
                 
                     if api_key != -1:
@@ -489,31 +554,14 @@ def index():
                     else:
                         text = f'Account non trovato'
 
-        elif messageText == '/annulla':
-                    text = f'Comando annullato\n' 
+
+            elif status == '1':
+                    setApiKey(chat_id, messageText)
                     setStatus(chat_id, f'0')
-
-
-        elif messageText == '/deletealllink':
-                    api_key = getApiKeyFromChatId(chat_id)
+                    text = f'Key settata correttamente'
                     
-                    url = f'https://thepdgt-bot.herokuapp.com/deletealllinks?api_key={api_key}'
 
-                    response = requests.get(url)
-
-                    if response.status_code != 200:
-                        text = f'Errore nell\'eliminare tutti i link\n' 
-                    else:
-                        text = f'Link eliminati correttamente'
-
-
-        elif status == '1':
-                    if setApiKey(chat_id, messageText) == 0 and setStatus(chat_id, f'0'):
-                        text = f'Key settata correttamente'
-                    else:
-                        text = f'Errore: key non settata. Riprova\n'
-
-        elif status == '2':
+            elif status == '2':
                     api_key = getApiKeyFromChatId(chat_id)
 
                     if api_key != -1:
@@ -538,6 +586,8 @@ def index():
                             
                             rCreatedD   = rCreated.split("T")[0]
 
+                        
+
 
                             text = f'ID Link : {rId}\nTitolo: {rTitle}\nDestinazione: {rDest}\nLink ridotto: {rShortUrl}\nStato link: {rStatus}\nClicks sul link: {rClicks}\nData creazione: {rCreatedD}\n' 
 
@@ -547,8 +597,7 @@ def index():
 
                     
 
-        elif status == '3':
-
+            elif status == '3':
                     api_key = getApiKeyFromChatId(chat_id)
 
                     if api_key != -1:
@@ -569,8 +618,9 @@ def index():
                             setStatus(chat_id, f'0')
                     else:
                         text = f'Errore nel trovare la chiave'
+                    
 
-        elif status == '4':
+            elif status == '4':
                     api_key = getApiKeyFromChatId(chat_id)
 
                     if api_key != -1:
@@ -597,12 +647,50 @@ def index():
                             setStatus(chat_id, f'0')
                     else:
                         text = f'Errore nel trovare la chiave'
+                    
+            else:
+                text = f'Messaggio non valido'
 
+        else:
+            if messageText == '/start':
+                text = f'Ciao, {username}!\nPer usare il BOT bisogna autenticarsi!\nInviami user e password in questo formato: YOURUSER-YOURPASSWORD'
+                
+                if getStatus(chat_id) == -1:
+                    insertChatId(chat_id)
 
-        inviaMessaggio(chat_id, text)
+                setStatus(chat_id, f'6')
+                
+        
+            elif messageText == '/annulla':
+                    text = f'Comando annullato\n' 
+                    setStatus(chat_id, f'0')
 
-    return jsonify(req)
+            elif getStatus(chat_id) == '6':
+                
+                try:
+                    user = messageText.split("-")[0]
+                    pwd  = messageText.split("-")[1]
+
+                    if user == environ.get('USER') and pwd == environ.get('PASSWORD') and setAuth(chat_id, f'1') == 0 and setStatus(chat_id, f'0') == 0:           
+                        
+                        text = (f'Login effettuato correttamente\n'
+                                f'Ciao, {username}!\n'
+                                f'Usa il comando /help per avere le informazioni sul mio funzionamento mentre usa /cmd per visualizzare i comandi disponibili.\n')
+
+                    else:
+                        text = f'Errore login riprova\n'
+
+                except: 
+                    text = f'Qualcosa è andato storto, riprova\n'
+
+            else:
+                text = f'Qualcosa è andato storto\n'
+                    
+
+        inviaMessaggio(chat_id,text)
  
+
+
 #FINE TELEGRAM 
 
 
