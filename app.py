@@ -494,7 +494,18 @@ def index():
                     setStatus(chat_id, f'0')
 
 
-      
+        elif messageText == '/deletealllink':
+                    api_key = getApiKeyFromChatId(chat_id)
+                    
+                    url = f'https://thepdgt-bot.herokuapp.com/deletealllinks?api_key={api_key}'
+
+                    response = requests.get(url)
+
+                    if response.status_code != 200:
+                        text = f'Errore nell\'eliminare tutti i link\n' 
+                    else:
+                        text = f'Link eliminati correttamente'
+
 
         elif status == '1':
                     if setApiKey(chat_id, messageText) == 0 and setStatus(chat_id, f'0'):
