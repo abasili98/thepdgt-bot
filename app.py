@@ -29,6 +29,7 @@ except:
     print("Errore nella connessione con il DataBase")
 
 
+
 def insertChatId(chat_id):
     try:
         cur = dbConn.cursor()
@@ -403,6 +404,34 @@ def index():
                     setStatus(chat_id, f'3')
 
 
+        elif messageText == '/infoaccount':
+
+                    api_key = getApiKeyFromChatId(chat_id)
+                    if api_key != -1:
+                        url = f'https://thepdgt-bot.herokuapp.com/accountinfo?api_key={api_key}'
+
+                        response = requests.get(url)
+
+                        if response.status_code != 200:
+                            text = f'Errore nell\'ottenere le informazioni'
+                        else:
+                            
+                            response = response.json()
+
+                            rUsername      = response.get('username')
+                            rEmail         = response.get('email')
+                            rFullName      = response.get('fullName')
+                            rType          = response.get('typeAccount')
+                            rLinksUsed     = response.get('linksUsed')
+                            rLinksMaxLimit = response.get('maxLimitLinks')
+                            rLinksBlocked  = response.get('rLinksBlocked')
+
+                            rId = response["id"]  
+
+                            text = f'ID Account: {rId}\nUsername: {rUsername}\nEmail: {rEmail}\nNome: {rFullName}\nLink usati: {rLinksUsed}\nLink Massimi Creabili: {rLinksMaxLimit}\nLink bloccati: {rLinksBlocked}\nTipo account: {rType}' 
+
+                    else:
+                        text = f'Account non trovato'
         
 
 
@@ -446,7 +475,7 @@ def index():
 
                     
 
-            elif status == '3':
+        elif status == '3':
 
                     api_key = getApiKeyFromChatId(chat_id)
 
@@ -468,7 +497,6 @@ def index():
                             setStatus(chat_id, f'0')
                     else:
                         text = f'Errore nel trovare la chiave'
-
 
 
 
