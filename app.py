@@ -439,6 +439,35 @@ def index():
                     setStatus(chat_id, f'4')
 
 
+        elif messageText == '/alllinks':
+                    api_key = getApiKeyFromChatId(chat_id)
+
+                    if api_key != -1:
+                        url = f'https://thepdgt-bot.herokuapp.com/listlink?api_key={api_key}'
+
+                        response = requests.get(url)
+
+                        if response.status_code != 200:
+                            text = f'Errore nell\'ottenere i link'
+                        else:
+                            
+                            response = response.json()
+
+                            text = f'Ecco la lista link:\n'
+                        
+                            for item in response:
+                                rId = item['id']
+                                rTitolo = item['title']
+                                rDest = item['destination']
+                                rShortLink = item['shortUrl']
+
+                                temp = f'ID Link: {rId}\nTitolo: {rTitolo}\nDestinazione: {rDest}\nLink ridotto: {rShortLink}\n\n'
+                                text = text + temp
+                            
+                    else:
+                        text = f'Account non trovato'
+
+
 
         elif status == '1':
                     if setApiKey(chat_id, messageText) == 0 and setStatus(chat_id, f'0'):
