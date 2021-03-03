@@ -467,7 +467,34 @@ def index():
                     else:
                         text = f'Account non trovato'
 
+        elif messageText == '/countlink':
+                    #FUNZIONA
+                    api_key = getApiKeyFromChatId(chat_id)
+                
+                    if api_key != -1:
+                        url = f'https://thepdgt-bot.herokuapp.com/countlink?api_key={api_key}'
 
+                        response = requests.get(url)
+
+                        if response.status_code != 200:
+                            text = f'Errore'
+                        else:
+
+                            response = response.json()
+                        
+                            count = response.get('count')
+
+                            text = f'Numero Link usati: {count}'
+
+                    else:
+                        text = f'Account non trovato'
+
+        elif messageText == '/annulla':
+                    text = f'Comando annullato\n' 
+                    setStatus(chat_id, f'0')
+
+
+      
 
         elif status == '1':
                     if setApiKey(chat_id, messageText) == 0 and setStatus(chat_id, f'0'):
@@ -568,6 +595,8 @@ def index():
 #FINE TELEGRAM 
 
 
+if __name__ == '__main__':
+    app.run(debug=True, port=int(environ.get('PORT', 5000)))
 
 
 
