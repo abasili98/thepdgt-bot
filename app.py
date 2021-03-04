@@ -431,6 +431,7 @@ def inviaMessaggio(chat_id, text):
 
 
 
+@app.route('/', methods=['POST', 'GET'])
 def index():
     if request.method == 'POST':
         req = request.get_json()
@@ -732,6 +733,7 @@ def index():
 
         inviaMessaggio(chat_id,text)
  
+        return jsonify(req)
 
 
 #FINE TELEGRAM 
