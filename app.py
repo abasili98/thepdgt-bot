@@ -455,125 +455,144 @@ def index():
                         f'Usa il comando /cmd per visualizzare i comandi disponibili e il loro funzionamento.')
 
             
+            elif messageText == '/cmd':
+                text =( f'Ecco i comandi:\n'
+                        f'/collegakey : Per collegare o aggiornare la tua chiave al bot\n'
+                        f'/infoaccount : Per ottenere le informazioni relative al tuo account\n'
+                        f'/infolink : Per ottenere le informazioni relative ad un link\n'
+                        f'/newlink : Per creare un nuovo ShortLink\n'
+                        f'/alllinks : Per ottenere tutti i link creati\n'
+                        f'/deletelink : Per eliminare un Link\n' 
+                        f'/deletealllink : Per eliminare tutti i link\n'
+                        f'/countlink : Per vedere i link creati\n'
+                        f'/logout : Per fare il logout dall\'account\n'
+                        f'/help: Per ottenere aiuto'
+                        f'/annulla : Per annullare l\'ultimo comando\n')
+
+
             elif messageText == '/collegakey':
                 text = f'Okei, ora inviami la Key che vuoi associare al bot\n'
                 setStatus(chat_id, f'1')
 
-            elif (messageText == '/infoaccount' or messageText == '/annulla' or messageText == '/infolink' or messageText == '/newlink' or messageText == '/alllinks' or messageText == '/deletelink' or messageText == '/changekey' or messageText == '/countlink' or messageText == '/deletealllink' or messageText == '/logout') and getApiKeyFromChatId(chat_id) != f'0':
+            elif (messageText == '/infoaccount' or messageText == '/annulla' or messageText == '/infolink' or messageText == '/newlink' or messageText == '/alllinks' or messageText == '/deletelink' or messageText == '/changekey' or messageText == '/countlink' or messageText == '/deletealllink' or messageText == '/logout'):
 
-                if messageText == '/infoaccount':
-                    api_key = getApiKeyFromChatId(chat_id)
-                    if api_key != -1:
-                        url = f'https://thepdgt-bot.herokuapp.com/accountinfo?api_key={api_key}'
+                if getApiKeyFromChatId(chat_id) != f'0':
+                
+                    if messageText == '/infoaccount':
+                        api_key = getApiKeyFromChatId(chat_id)
+                        if api_key != -1:
+                            url = f'https://thepdgt-bot.herokuapp.com/accountinfo?api_key={api_key}'
 
-                        response = requests.get(url)
+                            response = requests.get(url)
 
-                        if response.status_code != 200:
-                            text = f'Errore nell\'ottenere le informazioni'
+                            if response.status_code != 200:
+                                text = f'Errore nell\'ottenere le informazioni'
+                            else:
+                                
+                                response = response.json()
+
+                                rUsername      = response.get('username')
+                                rEmail         = response.get('email')
+                                rFullName      = response.get('fullName')
+                                rType          = response.get('typeAccount')
+                                rLinksUsed     = response.get('linksUsed')
+                                rLinksMaxLimit = response.get('maxLimitLinks')
+                                rLinksBlocked  = response.get('rLinksBlocked')
+
+                                rId = response["id"]
+
+                                text = f'ID Account: {rId}\nUsername: {rUsername}\nEmail: {rEmail}\nNome: {rFullName}\nLink usati: {rLinksUsed}\nLink Massimi Creabili: {rLinksMaxLimit}\nLink bloccati: {rLinksBlocked}\nTipo account: {rType}' 
+
                         else:
+                            text = f'Account non trovato'
+        
+                    elif messageText == '/annulla':
+                        text = f'Comando annullato\n' 
+                        setStatus(chat_id, f'0')
+
+                    elif messageText == '/logout':
+                        text = f'Logout effettuato\n'
                             
-                            response = response.json()
-
-                            rUsername      = response.get('username')
-                            rEmail         = response.get('email')
-                            rFullName      = response.get('fullName')
-                            rType          = response.get('typeAccount')
-                            rLinksUsed     = response.get('linksUsed')
-                            rLinksMaxLimit = response.get('maxLimitLinks')
-                            rLinksBlocked  = response.get('rLinksBlocked')
-
-                            rId = response["id"]
-
-                            text = f'ID Account: {rId}\nUsername: {rUsername}\nEmail: {rEmail}\nNome: {rFullName}\nLink usati: {rLinksUsed}\nLink Massimi Creabili: {rLinksMaxLimit}\nLink bloccati: {rLinksBlocked}\nTipo account: {rType}' 
-
-                    else:
-                        text = f'Account non trovato'
-      
-                elif messageText == '/annulla':
-                    text = f'Comando annullato\n' 
-                    setStatus(chat_id, f'0')
-
-                elif messageText == '/logout':
-                    text = f'Logout effettuato\n'
-                           
-                    setAuth(chat_id, f'0')
-                
-                
-                elif messageText == '/infolink':
-                    text = f'Okei, ora imviami l\'ID del Link di cui vuoi visualizzare le informazioni\n'            
-                    setStatus(chat_id, f'2')
-
-                elif messageText == '/newlink':
-                    text = f'Okei, ora imviami il link che vuoi ridurre\n'
-                    setStatus(chat_id, f'3')
-
-                elif messageText == '/alllinks':
-                    api_key = getApiKeyFromChatId(chat_id)
-
-                    if api_key != -1:
-                        url = f'https://thepdgt-bot.herokuapp.com/listlink?api_key={api_key}'
-
-                        response = requests.get(url)
-
-                        if response.status_code != 200:
-                            text = f'Errore nell\'ottenere i link'
-                        else:
-                            
-                            response = response.json()
-
-                            text = f'Ecco la lista link:\n'
-                        
-                            for item in response:
-                                rId = item['id']
-                                rTitolo = item['title']
-                                rDest = item['destination']
-                                rShortLink = item['shortUrl']
-
-                                temp = f'ID Link: {rId}\nTitolo: {rTitolo}\nDestinazione: {rDest}\nLink ridotto: {rShortLink}\n\n'
-                                text = text + temp
-                            
-                    else:
-                        text = f'Account non trovato'
-                
-
-                elif messageText == '/deletealllink':
-                    api_key = getApiKeyFromChatId(chat_id)
+                        setAuth(chat_id, f'0')
                     
-                    url = f'https://thepdgt-bot.herokuapp.com/deletealllinks?api_key={api_key}'
+                    
+                    elif messageText == '/infolink':
+                        text = f'Okei, ora imviami l\'ID del Link di cui vuoi visualizzare le informazioni\n'            
+                        setStatus(chat_id, f'2')
 
-                    response = requests.get(url)
+                    elif messageText == '/newlink':
+                        text = f'Okei, ora imviami il link che vuoi ridurre\n'
+                        setStatus(chat_id, f'3')
 
-                    if response.status_code != 200:
-                        text = f'Errore nell\'eliminare tutti i link\n' 
-                    else:
-                        text = f'Link eliminati correttamente'
-          
+                    elif messageText == '/alllinks':
+                        api_key = getApiKeyFromChatId(chat_id)
 
-                elif messageText == '/deletelink':
-                    text = f'Okei, ora inviami l\'ID del link che vuoi eliminare\n'
-                    setStatus(chat_id, f'4')
+                        if api_key != -1:
+                            url = f'https://thepdgt-bot.herokuapp.com/listlink?api_key={api_key}'
 
-                elif messageText == '/countlink':
-                    api_key = getApiKeyFromChatId(chat_id)
-                
-                    if api_key != -1:
-                        url = f'https://thepdgt-bot.herokuapp.com/countlink?api_key={api_key}'
+                            response = requests.get(url)
+
+                            if response.status_code != 200:
+                                text = f'Errore nell\'ottenere i link'
+                            else:
+                                
+                                response = response.json()
+
+                                text = f'Ecco la lista link:\n'
+                            
+                                for item in response:
+                                    rId = item['id']
+                                    rTitolo = item['title']
+                                    rDest = item['destination']
+                                    rShortLink = item['shortUrl']
+
+                                    temp = f'ID Link: {rId}\nTitolo: {rTitolo}\nDestinazione: {rDest}\nLink ridotto: {rShortLink}\n\n'
+                                    text = text + temp
+                                
+                        else:
+                            text = f'Account non trovato'
+                    
+
+                    elif messageText == '/deletealllink':
+                        api_key = getApiKeyFromChatId(chat_id)
+                        
+                        url = f'https://thepdgt-bot.herokuapp.com/deletealllinks?api_key={api_key}'
 
                         response = requests.get(url)
 
                         if response.status_code != 200:
-                            text = f'Errore'
+                            text = f'Errore nell\'eliminare tutti i link\n' 
                         else:
+                            text = f'Link eliminati correttamente'
+            
 
-                            response = response.json()
-                        
-                            count = response.get('count')
+                    elif messageText == '/deletelink':
+                        text = f'Okei, ora inviami l\'ID del link che vuoi eliminare\n'
+                        setStatus(chat_id, f'4')
 
-                            text = f'Numero Link usati: {count}'
+                    elif messageText == '/countlink':
+                        api_key = getApiKeyFromChatId(chat_id)
+                    
+                        if api_key != -1:
+                            url = f'https://thepdgt-bot.herokuapp.com/countlink?api_key={api_key}'
 
-                    else:
-                        text = f'Account non trovato'
+                            response = requests.get(url)
 
+                            if response.status_code != 200:
+                                text = f'Errore'
+                            else:
+
+                                response = response.json()
+                            
+                                count = response.get('count')
+
+                                text = f'Numero Link usati: {count}'
+
+                        else:
+                            text = f'Account non trovato'
+
+                else:
+                    text = f'Per poter accedere al comando devi prima collegare la API KEY\n'
 
             elif status == '1':
                     setApiKey(chat_id, messageText)
@@ -691,17 +710,21 @@ def index():
                     user = messageText.split("-")[0]
                     pwd  = messageText.split("-")[1]
 
-                    if user == environ.get('USER') and pwd == environ.get('PASSWORD') and setAuth(chat_id, f'1') == 0 and setStatus(chat_id, f'0') == 0:           
+                    if user == environ.get('USER') and pwd == environ.get('PASSWORD'):
+
+                        setAuth(chat_id, f'1')
+                        setStatus(chat_id, f'0')           
                         
+
                         text = (f'Login effettuato correttamente\n'
                                 f'Ciao, {username}!\n'
                                 f'Usa il comando /help per avere le informazioni sul mio funzionamento mentre usa /cmd per visualizzare i comandi disponibili.\n')
 
                     else:
-                        text = f'Errore login riprova\n'
+                        text = f'Credenziali non corrette\n'
 
                 except: 
-                    text = f'Qualcosa è andato storto, riprova\n'
+                    text = f'Formato stringa non corretto\n'
 
             else:
                 text = f'Qualcosa è andato storto\n'
