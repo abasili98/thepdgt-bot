@@ -21,11 +21,15 @@ def encrypt(text):
     return cText.decode("utf-8")
 
 def decrypt(text):
-    bText = text.encode("utf-8")
-    cText = f.decrypt(bText)
+    try:
+        bText = text.encode("utf-8")
+        cText = f.decrypt(bText)
 
-    return cText.decode("utf-8")
+        return cText.decode("utf-8")
 
+    except Exception as e:
+        print("Errore in Decript %s",e)
+        return -1
 
 
 
@@ -68,17 +72,21 @@ def getApiKeyFromChatId(chat_id):
         cur.execute(f"SELECT api_key FROM users WHERE chat_id = \'{chat_id}\'")
                 
         row = cur.fetchone()
+
+        r = decrypt(row[0])
+
+        if r != -1:
+            return str(r)
+        else:
+            return f'-1'
    
     except psycopg2.Error as e:
         error = e.pgcode
-        print("ERRORE in getApiKeyfromChatId!: %s", error)
+        print("ERRORE comunicazione con DB in getApiKeyfromChatId!: %s", error)
+        return f'-1'
     finally:
         cur.close()
 
-    if row: 
-        return str(decrypt(row[0]))
-    else:
-        return -1
         
 
 #Cambaire l'API KEY assocciata al Chat Id
@@ -181,6 +189,78 @@ def setAuth(chat_id, s):
 
 #INIZIO API
 
+@app.route('/link/<idLink>', methods=['GET', 'DELETE'])
+def apiLink(idLink):
+  
+    api_key = request.args.get('api_key', None)
+
+    if request.method == 'GET':
+
+        url = f'https://api.rebrandly.com/v1/links/{idLink}?apikey={api_key}'
+
+        response = requests.get(url)
+
+        if response.status_code != 200:
+            return make_response(f'ID link non trovato', 404)
+
+        response = response.json()
+
+        rId       = response.get('id')
+        rTitle    = response.get('title')
+        rDest     = response.get('destination')
+        rShortUrl = response.get('shortUrl')
+        rStatus   = response.get('status')
+        rClicks   = response.get('clicks')
+        rCreate   = response.get('createdAt')
+
+
+        r = {
+            "id": rId,
+            "title": rTitle,
+            "destination": rDest,
+            "shortUrl": rShortUrl,
+            "status": rStatus,
+            "clicks": rClicks,
+            "createdAt": rCreate
+        }
+
+        return make_response(jsonify(r), 200)
+
+    elif request.method == 'DELETE':
+
+        if api_key == None and idLink == None:
+            return make_response(f'API KEY o l\'ID link non presenti', 404)
+        
+
+        url = f'https://api.rebrandly.com/v1/links/{idLink}?apikey={api_key}'
+
+        response = requests.delete(url)
+
+        if response.status_code != 200:
+            return make_response(f'ID link non trovato', 404)
+        
+
+        response = response.json()
+
+        rId       = response.get('id')
+        rTitle    = response.get('title')
+        rDest     = response.get('destination')
+        rShortUrl = response.get('shortUrl')
+
+        r = {
+            'id': rId,
+            "title": rTitle,
+            "destination": rDest,
+            "shortUrl": rShortUrl
+        }
+    
+        return make_response(jsonify(r), 200)
+
+    else:
+        return make_response("Comando non valdo", 400)
+
+
+
 
 @app.route('/accountinfo')
 def apiAccountInfo():
@@ -222,7 +302,8 @@ def apiAccountInfo():
     return make_response(jsonify(r), 200)
 
 
-@app.route('/newlink')
+
+@app.route('/newlink', methods=['POST'])
 def apiNewLink():
 
     api_key = request.args.get('api_key', None)
@@ -243,40 +324,6 @@ def apiNewLink():
         "shortUrl": shortUrl
     }
 
-    return make_response(jsonify(r), 200)
-
-
-@app.route('/dellink')
-def apiDelLink():
-
-    api_key = request.args.get('api_key', None)
-
-    idLink = request.args.get('idLink', None)
-
-    if api_key == None and idLink == None:
-        return make_response(f'API KEY o l\'ID link non presenti', 404)
-    
-    url = f'https://api.rebrandly.com/v1/links/{idLink}?apikey={api_key}'
-
-    response = requests.delete(url)
-
-    if response.status_code != 200:
-        return make_response(f'ID link non trovato', 404)
-    
-    response = response.json()
-
-    rId       = response.get('id')
-    rTitle    = response.get('title')
-    rDest     = response.get('destination')
-    rShortUrl = response.get('shortUrl')
-
-    r = {
-        'id': rId,
-        "title": rTitle,
-        "destination": rDest,
-        "shortUrl": rShortUrl
-    }
- 
     return make_response(jsonify(r), 200)
 
 
@@ -304,44 +351,6 @@ def apiCountLink():
 
     return make_response(jsonify(r), 200)
 
-
-@app.route('/linkinfo')
-def apiLinkInfo():
-
-    idLink = request.args.get('idLink', None)
-
-    api_key = request.args.get('api_key', None)
-
-    url = f'https://api.rebrandly.com/v1/links/{idLink}?apikey={api_key}'
-
-
-    response = requests.get(url)
-
-    if response.status_code != 200:
-        return make_response(f'ID link non trovato', 404)
-
-    response = response.json()
-
-    rId       = response.get('id')
-    rTitle    = response.get('title')
-    rDest     = response.get('destination')
-    rShortUrl = response.get('shortUrl')
-    rStatus   = response.get('status')
-    rClicks   = response.get('clicks')
-    rCreate   = response.get('createdAt')
-
-
-    r = {
-        "id": rId,
-        "title": rTitle,
-        "destination": rDest,
-        "shortUrl": rShortUrl,
-        "status": rStatus,
-        "clicks": rClicks,
-        "createdAt": rCreate
-    }
-
-    return make_response(jsonify(r), 200)
 
 
 @app.route('/listlink')
@@ -376,7 +385,7 @@ def apiListLink():
     return make_response(jsonify(rList), 200)
 
 
-@app.route('/deletealllinks')
+@app.route('/deletealllinks', methods=['DELETE'])
 def apiDelAllLinks():
     api_key = request.args.get('api_key', None)
 
@@ -470,14 +479,17 @@ def index():
                         f'/help: Per ottenere aiuto'
                         f'/annulla : Per annullare l\'ultimo comando\n')
 
+            elif messageText == '/annulla':
+                text = f'Comando annullato\n' 
+                setStatus(chat_id, f'0')
 
             elif messageText == '/collegakey':
                 text = f'Okei, ora inviami la Key che vuoi associare al bot\n'
                 setStatus(chat_id, f'1')
 
-            elif (messageText == '/infoaccount' or messageText == '/annulla' or messageText == '/infolink' or messageText == '/newlink' or messageText == '/alllinks' or messageText == '/deletelink' or messageText == '/changekey' or messageText == '/countlink' or messageText == '/deletealllink' or messageText == '/logout'):
+            elif (messageText == '/infoaccount'  or messageText == '/infolink' or messageText == '/newlink' or messageText == '/alllinks' or messageText == '/deletelink' or messageText == '/changekey' or messageText == '/countlink' or messageText == '/deletealllink' or messageText == '/logout'):
 
-                if getApiKeyFromChatId(chat_id) != f'0':
+                if getApiKeyFromChatId(chat_id) != f'-1':
                 
                     if messageText == '/infoaccount':
                         api_key = getApiKeyFromChatId(chat_id)
@@ -507,9 +519,6 @@ def index():
                         else:
                             text = f'Account non trovato'
         
-                    elif messageText == '/annulla':
-                        text = f'Comando annullato\n' 
-                        setStatus(chat_id, f'0')
 
                     elif messageText == '/logout':
                         text = f'Logout effettuato\n'
@@ -559,7 +568,7 @@ def index():
                         
                         url = f'https://thepdgt-bot.herokuapp.com/deletealllinks?api_key={api_key}'
 
-                        response = requests.get(url)
+                        response = requests.delete(url)
 
                         if response.status_code != 200:
                             text = f'Errore nell\'eliminare tutti i link\n' 
@@ -606,7 +615,7 @@ def index():
 
                     if api_key != -1:
                         
-                        url = f'https://thepdgt-bot.herokuapp.com/linkinfo?idLink={messageText}&api_key={api_key}'
+                        url = f'https://thepdgt-bot.herokuapp.com/link/{messageText}?api_key={api_key}'
                     
                         response = requests.get(url)
 
@@ -644,7 +653,7 @@ def index():
 
                         url = f'https://thepdgt-bot.herokuapp.com/newlink?api_key={api_key}&destUrl={messageText}'
                     
-                        response = requests.get(url)
+                        response = requests.post(url)
 
                         if response.status_code != 200:
                             text = f'Errore nel creare il link.\nCopiare tutto il link (comrpreso http[s]://)\n'
@@ -665,9 +674,9 @@ def index():
 
                     if api_key != -1:
 
-                        url = f'https://thepdgt-bot.herokuapp.com/dellink?api_key={api_key}&idLink={messageText}'
+                        url = f'https://thepdgt-bot.herokuapp.com/link/{messageText}?api_key={api_key}'
                     
-                        response = requests.get(url)
+                        response = requests.delete(url)
 
                         if response.status_code != 200:
                             text = f'Errore nell\'eliminare il link\n'
